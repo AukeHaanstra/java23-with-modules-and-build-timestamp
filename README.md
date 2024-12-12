@@ -19,6 +19,7 @@ https://issues.apache.org/jira/browse/MCOMPILER-542
 
 "Actually, the only advantage of the JDK fix is that it would not require ASM upgrades on every major version (that it's
 actually required now anyway), other than that it should be a perfectly valid workaround."
+
 Since ASM is upgraded only in `maven-compiler-plugin:4.0.0-beta-1`, we need this plugin version for Java 23.
 
 https://issues.apache.org/jira/browse/MJAR-275

@@ -1,5 +1,10 @@
 # Maven compiler plugin failure with Java 23, Java modules and build timestamp property
 
+# Temporary resolution
+
+Use maven-compiler-plugin 4.0.0-beta-1 together with maven 4.0.0-beta-3 and set the `project.build.outputTimestamp`
+property (still necessary until >4.0.0-beta-5 can be used).
+
 ## Description
 
 For a multi-module maven project using Java 23 and java modules, the maven compiler plugin throws an error during the
@@ -8,6 +13,18 @@ This happens when the maven-compiler plugin encounters the first maven module th
 the build, and only happens when using the property project.build.outputTimestamp (for reproducible builds) in the
 (parent) pom.
 This only happens when using Java 23 (tested using Oracle JDK 23.0.1); with JDK 21 or 22 the maven build succeeds.
+
+See:
+https://issues.apache.org/jira/browse/MCOMPILER-542
+
+"Actually, the only advantage of the JDK fix is that it would not require ASM upgrades on every major version (that it's
+actually required now anyway), other than that it should be a perfectly valid workaround."
+Since ASM is upgraded only in `maven-compiler-plugin:4.0.0-beta-1`, we need this plugin version for Java 23.
+
+https://issues.apache.org/jira/browse/MJAR-275
+
+When compiling with Maven 3.9.9 `The plugin org.apache.maven.plugins:maven-compiler-plugin:4.0.0-beta-1 requires Maven
+version 4.0.0-beta-3`, however, only 4.0.0-beta-3 works correctly, higher versions won't.
 
 ## Reproducer
 
@@ -38,13 +55,27 @@ Using maven-compiler-plugin:4.0.0-beta-1 with maven 4 completely fails for me, b
 
 ## Relevant documentation
 
+Probably related issues:
+https://issues.apache.org/jira/browse/MCOMPILER-542
+https://bugs.openjdk.org/browse/JDK-8318913
+
 Reproducible builds documentation:
 
 https://maven.apache.org/guides/mini/guide-reproducible-builds.html
 
 ## Logs
 
-Full stack trace:
+Cause (Maven compiler plugin 3.13.0):
+
+```text
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 67
+at org.objectweb.asm.ClassReader.<init> (ClassReader.java:200)
+at org.objectweb.asm.ClassReader.<init> (ClassReader.java:180)
+at org.objectweb.asm.ClassReader.<init> (ClassReader.java:166)
+at org.apache.maven.plugin.compiler.ModuleInfoTransformer.transform (ModuleInfoTransformer.java:45)
+```
+
+Full stack trace (Maven compiler plugin 3.13.0):
 
 ```text
 [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile (default-compile) on project javamodule: Execution default-compile of goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile failed: Unsupported class file major version 67 -> [Help 1]

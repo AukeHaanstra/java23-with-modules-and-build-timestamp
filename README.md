@@ -5,6 +5,15 @@
 Use maven-compiler-plugin 4.0.0-beta-1 together with maven 4.0.0-beta-3 and set the `project.build.outputTimestamp`
 property (still necessary until >4.0.0-beta-5 can be used).
 
+Background: The maven-compiler-plugin uses the asm library for patching the JDK module version in module-info class
+bytecode (maven-compiler-plugin's ByteCodeTransformer class).
+It does this to ensure reproducible builds.
+Otherwise https://bugs.openjdk.org/browse/JDK-8318913 (compilation with the same javac release parameter, but different
+JDKs: 21 vs 22, yield different module-info bytecodes) would cause the module-info bytecode and thus the whole build
+artifact to become potentially unreproducible.
+While this would no longer be necessary for Java 23, the bytecode tranformation is still executed and needs an updated
+ASM dependency for Java 23 (which is only available in maven-compiler-plugin 4.0.0-beta-1).
+
 ## Description
 
 For a multi-module maven project using Java 23 and java modules, the maven compiler plugin throws an error during the
@@ -23,6 +32,7 @@ actually required now anyway), other than that it should be a perfectly valid wo
 Since ASM is upgraded only in `maven-compiler-plugin:4.0.0-beta-1`, we need this plugin version for Java 23.
 
 https://issues.apache.org/jira/browse/MJAR-275
+https://bugs.openjdk.org/browse/JDK-8318913
 
 When compiling with Maven 3.9.9 `The plugin org.apache.maven.plugins:maven-compiler-plugin:4.0.0-beta-1 requires Maven
 version 4.0.0-beta-3`, however, only 4.0.0-beta-3 works correctly, higher versions won't.
@@ -55,10 +65,6 @@ Using maven-compiler-plugin:4.0.0-beta-1 with maven 4 completely fails for me, b
 [bug](https://issues.apache.org/jira/browse/MCOMPILER-599) has already been reported.
 
 ## Relevant documentation
-
-Probably related issues:
-https://issues.apache.org/jira/browse/MCOMPILER-542
-https://bugs.openjdk.org/browse/JDK-8318913
 
 Reproducible builds documentation:
 
